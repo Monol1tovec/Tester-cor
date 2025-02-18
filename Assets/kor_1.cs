@@ -1,82 +1,92 @@
 using UnityEngine;
 
-public class SpaceShipController : MonoBehaviour
+public class SpaceshipController : MonoBehaviour
 {
-    public float speed = 10f; // Скорость движения корабля
-    public float rotationSpeed = 100f; // Скорость поворота
-    public float rollSpeed = 50f; // Скорость крена (вращение вокруг оси Z)
-    public GameObject laserPrefab; // Префаб лазера для стрельбы
-    public Transform laserSpawnPoint; // Точка, откуда будет вылетать лазер
+    [Header("Movement Settings")]
+    public float pitchPower = 2f;
+    public float rollPower = 2f;
+    public float yawPower = 1f;
+    public float baseEnginePower = 10f;
+    public float maxEnginePower = 50f;
+    public float accelerationRate = 5f;
+    public float rotationSmoothness = 5f;
 
+    [Header("Physics Settings")]
+    public float drag = 1f;
+    public float angularDrag = 2f;
+
+    private float currentEnginePower;
     private Rigidbody rb;
+    private float currentPitch;
+    private float currentRoll;
+    private float currentYaw;
 
-    void Start()
+    private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.linearDamping = drag;
+        rb.angularDamping = angularDrag;
+        currentEnginePower = baseEnginePower;
     }
 
-    void Update()
+    private void Update()
     {
-        // Движение вперёд (по оси Z)
-        if (Input.GetKey(KeyCode.W))
-        {
-            rb.AddForce(transform.forward * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
-
-        // Движение назад (по оси Z)
-        if (Input.GetKey(KeyCode.S))
-        {
-            rb.AddForce(-transform.forward * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
-
-        // Движение вверх (по оси Y)
-        if (Input.GetKey(KeyCode.Space))
-        {
-            rb.AddForce(transform.up * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
-
-        // Движение вниз (по оси Y)
-        if (Input.GetKey(KeyCode.LeftControl))
-        {
-            rb.AddForce(-transform.up * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
-
-        // Поворот влево (вращение вокруг оси Y)
-        if (Input.GetKey(KeyCode.A))
-        {
-            transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
-        }
-
-        // Поворот вправо (вращение вокруг оси Y)
-        if (Input.GetKey(KeyCode.D))
-        {
-            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
-        }
-
-        // Крен влево (вращение вокруг оси Z)
-        if (Input.GetKey(KeyCode.Q))
-        {
-            transform.Rotate(Vector3.forward, rollSpeed * Time.deltaTime);
-        }
-
-        // Крен вправо (вращение вокруг оси Z)
-        if (Input.GetKey(KeyCode.E))
-        {
-            transform.Rotate(Vector3.forward, -rollSpeed * Time.deltaTime);
-        }
-
-        // Стрельба
-        if (Input.GetKeyDown(KeyCode.Mouse0)) // Левая кнопка мыши
-        {
-            Shoot();
-        }
+        HandleThrottle();
+        HandleRotationInput();
     }
 
-    void Shoot()
+    private void FixedUpdate()
     {
-        if (laserPrefab != null && laserSpawnPoint != null)
+        ApplyMovement();
+        ApplyRotation();
+    }
+
+    void HandleThrottle()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            Instantiate(laserPrefab, laserSpawnPoint.position, laserSpawnPoint.rotation);
+            pressingThrottle = !pressingThrottle;
         }
     }
+
+    void HandleRotationInput()
+    {
+        // ������� ������������ �����
+        float targetPitch = Input.GetAxis("Vertical") * pitchPower;
+        float targetRoll = Input.GetAxis("Horizontal") * rollPower;
+        float targetYaw = Input.GetAxis("Yaw") * yawPower;
+
+        currentPitch = Mathf.Lerp(currentPitch, targetPitch, rotationSmoothness * Time.deltaTime);
+        currentRoll = Mathf.Lerp(currentRoll, targetRoll, rotationSmoothness * Time.deltaTime);
+        currentYaw = Mathf.Lerp(currentYaw, targetYaw, rotationSmoothness * Time.deltaTime);
+    }
+
+    void ApplyMovement()
+    {
+        if (pressingThrottle)
+        {
+            // ������� ������
+            currentEnginePower = Mathf.Lerp(currentEnginePower, maxEnginePower, accelerationRate * Time.deltaTime);
+            rb.AddForce(transform.forward * currentEnginePower, ForceMode.Acceleration);
+        }
+        else
+        {
+            // ������� ����������
+            currentEnginePower = Mathf.Lerp(currentEnginePower, baseEnginePower, accelerationRate * Time.deltaTime);
+        }
+    }
+
+    void ApplyRotation()
+    {
+        // ��������� �������� ����� ������
+        Vector3 rotationTorque = new Vector3(
+            currentPitch,
+            currentYaw,
+            -currentRoll
+        );
+
+        rb.AddTorque(rotationTorque, ForceMode.Acceleration);
+    }
+
+    public bool pressingThrottle { get; private set; } = false;
 }
