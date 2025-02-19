@@ -163,15 +163,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c944440af8eb4bb4c9325b2a4c95eeb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pitchPower: 2
-  rollPower: 2
-  yawPower: 1
-  baseEnginePower: 20
-  maxEnginePower: 100
-  accelerationRate: 3
-  rotationSmoothness: 5
-  drag: 1
-  angularDrag: 2
+  forwardSpeed: 25
+  strafeSpeed: 7.5
+  hoverSpeed: 5
+  lookRateSpeed: 90
+  rollSpeed: 90
+  rollAcceleration: 3.5
 --- !u!54 &273527750
 Rigidbody:
   m_ObjectHideFlags: 0

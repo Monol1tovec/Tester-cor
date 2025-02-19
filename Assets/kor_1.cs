@@ -1,92 +1,52 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class SpaceshipController : MonoBehaviour
+public class ShipController : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    public float pitchPower = 2f;
-    public float rollPower = 2f;
-    public float yawPower = 1f;
-    public float baseEnginePower = 10f;
-    public float maxEnginePower = 50f;
-    public float accelerationRate = 5f;
-    public float rotationSmoothness = 5f;
+    public float forwardSpeed = 25f, strafeSpeed = 7.5f, hoverSpeed = 5f;
+    private float activeForwardSpeed, activeStrafeSpeed, activeHoverSpeed;
+    private float forwardAcceleration = 2.5f, strafeAcceleration = 2f, hoverAcceleration = 2f;
 
-    [Header("Physics Settings")]
-    public float drag = 1f;
-    public float angularDrag = 2f;
+    public float lookRateSpeed = 90f;
+    private Vector2 lookInput, screenCenter, mouseDistance;
 
-    private float currentEnginePower;
-    private Rigidbody rb;
-    private float currentPitch;
-    private float currentRoll;
-    private float currentYaw;
+    private float rollInput;
+    public float rollSpeed = 90f, rollAcceleration = 3.5f;
 
-    private void Start()
+    // Start is called before the first frame update
+    void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.linearDamping = drag;
-        rb.angularDamping = angularDrag;
-        currentEnginePower = baseEnginePower;
+        screenCenter.x = Screen.width * 0.5f;
+        screenCenter.y = Screen.height * 0.5f;
+        Cursor.lockState = CursorLockMode.Confined;
     }
 
-    private void Update()
+    // Update is called once per frame
+    void Update()
     {
-        HandleThrottle();
-        HandleRotationInput();
-    }
+        lookInput.x = Input.mousePosition.x;
+        lookInput.y = Input.mousePosition.y;
 
-    private void FixedUpdate()
-    {
-        ApplyMovement();
-        ApplyRotation();
-    }
+        mouseDistance.x = (lookInput.x - screenCenter.x) / screenCenter.y;
+        mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
+        mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
 
-    void HandleThrottle()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            pressingThrottle = !pressingThrottle;
-        }
-    }
+        rollInput = Mathf.Lerp(rollInput, Input.GetAxisRaw("Roll"), rollAcceleration * Time.deltaTime);
 
-    void HandleRotationInput()
-    {
-        // ������� ������������ �����
-        float targetPitch = Input.GetAxis("Vertical") * pitchPower;
-        float targetRoll = Input.GetAxis("Horizontal") * rollPower;
-        float targetYaw = Input.GetAxis("Yaw") * yawPower;
-
-        currentPitch = Mathf.Lerp(currentPitch, targetPitch, rotationSmoothness * Time.deltaTime);
-        currentRoll = Mathf.Lerp(currentRoll, targetRoll, rotationSmoothness * Time.deltaTime);
-        currentYaw = Mathf.Lerp(currentYaw, targetYaw, rotationSmoothness * Time.deltaTime);
-    }
-
-    void ApplyMovement()
-    {
-        if (pressingThrottle)
-        {
-            // ������� ������
-            currentEnginePower = Mathf.Lerp(currentEnginePower, maxEnginePower, accelerationRate * Time.deltaTime);
-            rb.AddForce(transform.forward * currentEnginePower, ForceMode.Acceleration);
-        }
-        else
-        {
-            // ������� ����������
-            currentEnginePower = Mathf.Lerp(currentEnginePower, baseEnginePower, accelerationRate * Time.deltaTime);
-        }
-    }
-
-    void ApplyRotation()
-    {
-        // ��������� �������� ����� ������
-        Vector3 rotationTorque = new Vector3(
-            currentPitch,
-            currentYaw,
-            -currentRoll
+        transform.Rotate(
+            -mouseDistance.y * lookRateSpeed * Time.deltaTime,
+            mouseDistance.x * lookRateSpeed * Time.deltaTime,
+            rollInput * rollSpeed * Time.deltaTime,
+            Space.Self
         );
 
-        rb.AddTorque(rotationTorque, ForceMode.Acceleration);
-    }
+        activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
+        activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
+        activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, Input.GetAxisRaw("Hover") * hoverSpeed, hoverAcceleration * Time.deltaTime);
 
-    public bool pressingThrottle { get; private set; } = false;
+        transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
+        transform.position += transform.right * activeStrafeSpeed * Time.deltaTime;
+        transform.position += transform.up * activeHoverSpeed * Time.deltaTime;
+    }
 }
