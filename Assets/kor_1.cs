@@ -21,7 +21,7 @@ public class ShipController : MonoBehaviour
         screenCenter.y = Screen.height * 0.5f;
         Cursor.lockState = CursorLockMode.Confined;
     }
-
+    
     // Update is called once per frame
     void Update()
     {
