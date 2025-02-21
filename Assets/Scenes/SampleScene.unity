@@ -146,7 +146,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 80
@@ -190,11 +190,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c944440af8eb4bb4c9325b2a4c95eeb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 60
-  rotationSpeed: 100
+  forwardSpeed: 25
+  strafeSpeed: 7.5
+  hoverSpeed: 5
+  lookRateSpeed: 90
   rollSpeed: 60
-  laserPrefab: {fileID: 0}
-  laserSpawnPoint: {fileID: 0}
+  rollAcceleration: 3.5
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
