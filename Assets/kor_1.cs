@@ -21,7 +21,7 @@ public class ShipController : MonoBehaviour
         screenCenter.y = Screen.height * 0.5f;
         Cursor.lockState = CursorLockMode.Confined;
     }
-
+    
     // Update is called once per frame
     void Update()
     {
@@ -32,7 +32,7 @@ public class ShipController : MonoBehaviour
         mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
         mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
 
-        rollInput = Mathf.Lerp(rollInput, Input.GetAxisRaw("Roll"), rollAcceleration * Time.deltaTime);
+        rollInput = Mathf.Lerp(rollInput, Input.GetAxisRaw("Mause X"), rollAcceleration * Time.deltaTime);
 
         transform.Rotate(
             -mouseDistance.y * lookRateSpeed * Time.deltaTime,
@@ -43,7 +43,7 @@ public class ShipController : MonoBehaviour
 
         activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
         activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
-        activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, Input.GetAxisRaw("Hover") * hoverSpeed, hoverAcceleration * Time.deltaTime);
+        activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, Input.GetAxisRaw("Mause Y") * hoverSpeed, hoverAcceleration * Time.deltaTime);
 
         transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
         transform.position += transform.right * activeStrafeSpeed * Time.deltaTime;
