@@ -1,82 +1,52 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class SpaceShipController : MonoBehaviour
+public class ShipController : MonoBehaviour
 {
-    public float speed = 10f; // Скорость движения корабля
-    public float rotationSpeed = 100f; // Скорость поворота
-    public float rollSpeed = 50f; // Скорость крена (вращение вокруг оси Z)
-    public GameObject laserPrefab; // Префаб лазера для стрельбы
-    public Transform laserSpawnPoint; // Точка, откуда будет вылетать лазер
+    public float forwardSpeed = 25f, strafeSpeed = 7.5f, hoverSpeed = 5f;
+    private float activeForwardSpeed, activeStrafeSpeed, activeHoverSpeed;
+    private float forwardAcceleration = 2.5f, strafeAcceleration = 2f, hoverAcceleration = 2f;
 
-    private Rigidbody rb;
+    public float lookRateSpeed = 90f;
+    private Vector2 lookInput, screenCenter, mouseDistance;
 
+    private float rollInput;
+    public float rollSpeed = 90f, rollAcceleration = 3.5f;
+
+    // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        screenCenter.x = Screen.width * 0.5f;
+        screenCenter.y = Screen.height * 0.5f;
+        Cursor.lockState = CursorLockMode.Confined;
     }
 
+    // Update is called once per frame
     void Update()
     {
-        // Движение вперёд (по оси Z)
-        if (Input.GetKey(KeyCode.W))
-        {
-            rb.AddForce(transform.forward * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
+        lookInput.x = Input.mousePosition.x;
+        lookInput.y = Input.mousePosition.y;
 
-        // Движение назад (по оси Z)
-        if (Input.GetKey(KeyCode.S))
-        {
-            rb.AddForce(-transform.forward * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
+        mouseDistance.x = (lookInput.x - screenCenter.x) / screenCenter.y;
+        mouseDistance.y = (lookInput.y - screenCenter.y) / screenCenter.y;
+        mouseDistance = Vector2.ClampMagnitude(mouseDistance, 1f);
 
-        // Движение вверх (по оси Y)
-        if (Input.GetKey(KeyCode.Space))
-        {
-            rb.AddForce(transform.up * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
+        rollInput = Mathf.Lerp(rollInput, Input.GetAxisRaw("Roll"), rollAcceleration * Time.deltaTime);
 
-        // Движение вниз (по оси Y)
-        if (Input.GetKey(KeyCode.LeftControl))
-        {
-            rb.AddForce(-transform.up * speed * Time.deltaTime, ForceMode.VelocityChange);
-        }
+        transform.Rotate(
+            -mouseDistance.y * lookRateSpeed * Time.deltaTime,
+            mouseDistance.x * lookRateSpeed * Time.deltaTime,
+            rollInput * rollSpeed * Time.deltaTime,
+            Space.Self
+        );
 
-        // Поворот влево (вращение вокруг оси Y)
-        if (Input.GetKey(KeyCode.A))
-        {
-            transform.Rotate(Vector3.up, -rotationSpeed * Time.deltaTime);
-        }
+        activeForwardSpeed = Mathf.Lerp(activeForwardSpeed, Input.GetAxisRaw("Vertical") * forwardSpeed, forwardAcceleration * Time.deltaTime);
+        activeStrafeSpeed = Mathf.Lerp(activeStrafeSpeed, Input.GetAxisRaw("Horizontal") * strafeSpeed, strafeAcceleration * Time.deltaTime);
+        activeHoverSpeed = Mathf.Lerp(activeHoverSpeed, Input.GetAxisRaw("Hover") * hoverSpeed, hoverAcceleration * Time.deltaTime);
 
-        // Поворот вправо (вращение вокруг оси Y)
-        if (Input.GetKey(KeyCode.D))
-        {
-            transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
-        }
-
-        // Крен влево (вращение вокруг оси Z)
-        if (Input.GetKey(KeyCode.Q))
-        {
-            transform.Rotate(Vector3.forward, rollSpeed * Time.deltaTime);
-        }
-
-        // Крен вправо (вращение вокруг оси Z)
-        if (Input.GetKey(KeyCode.E))
-        {
-            transform.Rotate(Vector3.forward, -rollSpeed * Time.deltaTime);
-        }
-
-        // Стрельба
-        if (Input.GetKeyDown(KeyCode.Mouse0)) // Левая кнопка мыши
-        {
-            Shoot();
-        }
-    }
-
-    void Shoot()
-    {
-        if (laserPrefab != null && laserSpawnPoint != null)
-        {
-            Instantiate(laserPrefab, laserSpawnPoint.position, laserSpawnPoint.rotation);
-        }
+        transform.position += transform.forward * activeForwardSpeed * Time.deltaTime;
+        transform.position += transform.right * activeStrafeSpeed * Time.deltaTime;
+        transform.position += transform.up * activeHoverSpeed * Time.deltaTime;
     }
 }
